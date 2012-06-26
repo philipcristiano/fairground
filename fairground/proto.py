@@ -10,12 +10,18 @@ client.connect()
 
 print client.get_children('/')
 
-path = '/fairground/application/evo'
+path = '/fairground/application/sleep'
 command = 'sleep 60'
-try:
-    client.create(path, command, makepath=True)
-except zookeeper.NodeExistsException:
-    client.delete(path)
-    client.create(path, command, makepath=True)
-    print 'Node already exists, I remade it!'
+
+count = 1
+while True:
+    command = 'sleep {0}'.format(count)
+    try:
+        client.create(path, command, makepath=True)
+    except zookeeper.NodeExistsException:
+        client.delete(path)
+        client.create(path, command, makepath=True)
+        print 'Node already exists, I remade it to {0}!'.format(count)
+    count += 1
+    time.sleep(1)
 client.stop
