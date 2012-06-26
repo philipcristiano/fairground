@@ -9,15 +9,13 @@ client
 client.connect()
 
 print client.get_children('/')
-print client.get_children('/zookeeper')
 
 path = '/fairground/application/evo'
+command = 'sleep 60'
 try:
-    client.create(path, 'version=1', makepath=True, ephemeral=True)
+    client.create(path, command, makepath=True)
 except zookeeper.NodeExistsException:
     client.delete(path)
-    print 'Node already exists, I deleted it!'
-print client.get_children('/')
+    client.create(path, command, makepath=True)
+    print 'Node already exists, I remade it!'
 client.stop
-
-time.sleep(120)
