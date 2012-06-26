@@ -1,3 +1,4 @@
+circus==0.4
 coverage
 mock
 nose
