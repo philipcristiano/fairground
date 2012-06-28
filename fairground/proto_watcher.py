@@ -55,30 +55,40 @@ def create_watcher(name, command):
         circus_client.call(message)
         print 'Added ', command, ' the second time!'
 
+class Fairground(object):
+    path = '/fairground/application/sleep'
 
-path = '/fairground/application/sleep'
-def watch_node(watched_event):
-    print watched_event
-    create_from_znode(path)
+    def __init__(self):
+        self.arbiter = start_arbiter_process()
 
-def create_from_znode(zookeeper_client, path):
-    print 'Getting znode'
-    command, data = zookeeper_client.get(path, watch_node)
-    print command, data
-    create_watcher('sleep', command)
-    print 'created watcher'
+    def main(self):
+        self.zookeeper_client = get_connected_zookeeper_client()
+        try:
+            print 'Watching znode'
+            self.create_from_znode(self.path)
+            self.arbiter.join()
+        finally:
+            self.zookeeper_client.stop()
+
+
+    def watch_node(self, watched_event):
+        print watched_event
+        create_from_znode(path)
+
+    def create_from_znode(self, path):
+        print 'Getting znode'
+        command, data = self.zookeeper_client.get(path, self.watch_node)
+        print command, data
+        create_watcher('sleep', command)
+        print 'created watcher'
 
 def main():
-    arbiter = start_arbiter_process()
-    try:
-        print 'Watching znode'
-        zookeeper_client = get_connected_zookeeper_client()
-        create_from_znode(zookeeper_client, path)
-        arbiter.join()
-    finally:
-        zookeeper_client.stop()
+    fairground = Fairground()
+    fairground.main()
+
 
 def start_main_in_process():
+
     p = Process(target=main)
     p.start()
     return p
