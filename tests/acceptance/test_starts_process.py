@@ -12,6 +12,10 @@ def I_have_a_connection_to_zookeeper():
     world.zookeeper = get_connected_zookeeper_client()
 
 @step
+def I_stop_the_zookeeper_connection():
+    world.zookeeper.stop()
+
+@step
 def I_have_a_circus_client():
     world.circus_client = create_circus_client()
 
@@ -36,14 +40,15 @@ def I_check_the_process_status(process):
             "name": process,
         }
     }
-    for i in range(1):
-        print world.circus_client.call(status_message)
+    for i in range(5):
+        response = world.circus_client.call(status_message)
+        if response['status'] == 'ok':
+            return
         time.sleep(1)
+    assert False
 
 @step
 def There_is_a_running_process(process):
-    import time
-    time.sleep(1)
     for p in psi.process.ProcessTable().values():
         if process in p.command:
             return
@@ -67,3 +72,4 @@ class TestRunningASingleProcess(TestCase):
 
     def tearDown(self):
         Then.I_stop_the_fairground()
+        Then.I_stop_the_zookeeper_connection()

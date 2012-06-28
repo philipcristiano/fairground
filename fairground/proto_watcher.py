@@ -1,6 +1,5 @@
 import zookeeper
 import time
-from pprint import pprint
 from circus import get_arbiter
 from circus.client import CircusClient
 from multiprocessing import Process
@@ -8,12 +7,10 @@ from fairground.connections import get_connected_zookeeper_client
 
 def start_arbiter():
     arbiter = get_arbiter([])
-    print 'starting arbiter'
     try:
         arbiter.start()
     finally:
         arbiter.stop()
-        print 'Arbiter stopped :('
 
 def start_arbiter_process():
     p = Process(target=start_arbiter)
@@ -42,9 +39,7 @@ def create_watcher(name, command):
         }
     }
     response = circus_client.call(message)
-    if response['status'] == u'ok':
-        print 'Added ', command, ' the first time!'
-    else:
+    if response['status'] != u'ok':
         remove_message = {
             'command': 'rm',
             'properties': {
@@ -53,7 +48,6 @@ def create_watcher(name, command):
         }
         circus_client.call(remove_message)
         circus_client.call(message)
-        print 'Added ', command, ' the second time!'
 
 class Fairground(object):
     path = '/fairground/application/sleep'
@@ -64,7 +58,6 @@ class Fairground(object):
     def main(self):
         self.zookeeper_client = get_connected_zookeeper_client()
         try:
-            print 'Watching znode'
             self.create_from_znode(self.path)
             self.arbiter.join()
         finally:
@@ -72,15 +65,11 @@ class Fairground(object):
 
 
     def watch_node(self, watched_event):
-        print watched_event
         create_from_znode(path)
 
     def create_from_znode(self, path):
-        print 'Getting znode'
         command, data = self.zookeeper_client.get(path, self.watch_node)
-        print command, data
         create_watcher('sleep', command)
-        print 'created watcher'
 
 def main():
     fairground = Fairground()

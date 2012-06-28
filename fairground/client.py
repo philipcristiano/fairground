@@ -10,5 +10,4 @@ def create_process(command):
     except zookeeper.NodeExistsException:
         client.delete(path)
         client.create(path, command, makepath=True)
-        print 'Node already exists, I remade it to {0}!'.format(command)
     client.stop()
