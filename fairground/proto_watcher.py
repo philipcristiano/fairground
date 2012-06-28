@@ -15,14 +15,12 @@ def start_arbiter():
         arbiter.stop()
         print 'Arbiter stopped :('
 
-def start_fairground():
-    print 'Starting fairgound process'
+def start_arbiter_process():
     p = Process(target=start_arbiter)
     p.start()
     return p
 
 
-zookeeper_client = get_connected_zookeeper_client()
 
 def create_circus_client():
     return CircusClient()
@@ -63,16 +61,28 @@ def watch_node(watched_event):
     print watched_event
     create_from_znode(path)
 
-def create_from_znode(path):
+def create_from_znode(zookeeper_client, path):
+    print 'Getting znode'
     command, data = zookeeper_client.get(path, watch_node)
+    print command, data
     create_watcher('sleep', command)
+    print 'created watcher'
 
-if __name__ == '__main__':
-    start_fairground()
-
+def main():
+    arbiter = start_arbiter_process()
     try:
-        while True:
-            create_from_znode(path)
-            time.sleep(30)
+        print 'Watching znode'
+        zookeeper_client = get_connected_zookeeper_client()
+        create_from_znode(zookeeper_client, path)
+        arbiter.join()
     finally:
         zookeeper_client.stop()
+
+def start_main_in_process():
+    p = Process(target=main)
+    p.start()
+    return p
+
+if __name__ == '__main__':
+    main()
+
