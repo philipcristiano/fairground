@@ -1,9 +1,10 @@
-from kazoo.client import KazooClient
 import zookeeper
 import time
+from pprint import pprint
 from circus import get_arbiter
 from circus.client import CircusClient
 from multiprocessing import Process
+from fairground.connections import get_connected_zookeeper_client
 
 def start_arbiter():
     arbiter = get_arbiter([])
@@ -12,39 +13,66 @@ def start_arbiter():
         arbiter.start()
     finally:
         arbiter.stop()
+        print 'Arbiter stopped :('
 
-p = Process(target=start_arbiter)
-p.start()
+def start_fairground():
+    print 'Starting fairgound process'
+    p = Process(target=start_arbiter)
+    p.start()
+    return p
 
-zookeeper_client = KazooClient('33.33.33.10:2181')
 
-zookeeper_client
-zookeeper_client.connect()
+zookeeper_client = get_connected_zookeeper_client()
 
-print zookeeper_client.get_children('/')
-print zookeeper_client.get_children('/zookeeper')
+def create_circus_client():
+    return CircusClient()
 
-circus_client = CircusClient()
+def send_stop_message():
+    circus_client = create_circus_client()
+    circus_client.call({'command': 'quit'})
 
-def create_watcher(command):
+def create_watcher(name, command):
+    circus_client = create_circus_client()
     message = {
         'command': 'add',
         'properties': {
             'cmd': command,
-            'name': 'sleep',
+            'name': name,
             'args': [],
             'options': {},
             'start': True
         }
     }
-    print circus_client.call(message)
+    response = circus_client.call(message)
+    if response['status'] == u'ok':
+        print 'Added ', command, ' the first time!'
+    else:
+        remove_message = {
+            'command': 'rm',
+            'properties': {
+                'name': name,
+            }
+        }
+        circus_client.call(remove_message)
+        circus_client.call(message)
+        print 'Added ', command, ' the second time!'
 
-path = '/fairground/application/evo'
-try:
-    while True:
-        command, data = zookeeper_client.get(path)
-        print command, data
-        create_watcher(command)
-        time.sleep(30)
-finally:
-    zookeeper_client.stop()
+
+path = '/fairground/application/sleep'
+def watch_node(watched_event):
+    print watched_event
+    create_from_znode(path)
+
+def create_from_znode(path):
+    command, data = zookeeper_client.get(path, watch_node)
+    create_watcher('sleep', command)
+
+if __name__ == '__main__':
+    start_fairground()
+
+    try:
+        while True:
+            create_from_znode(path)
+            time.sleep(30)
+    finally:
+        zookeeper_client.stop()
