@@ -4,7 +4,8 @@
 nosetests.xml
 
 # virtualenv
-venv/
+/venv/
+/application_venvs
 
 # Packages
 *.egg
