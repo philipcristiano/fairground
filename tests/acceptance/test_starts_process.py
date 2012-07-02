@@ -66,9 +66,10 @@ class TestRunningASingleProcess(TestCase):
         Given.I_have_a_connection_to_zookeeper()
         And.A_fairground_is_running()
         And.I_have_a_circus_client()
-        When.I_add_a_process('sleep 60')
-        Then.I_check_the_process_status('sleep')
-        And.There_is_a_running_process('sleep 60')
+        command = 'python -m SimpleHTTPServer'
+        When.I_add_a_process(command)
+        Then.I_check_the_process_status('test_process')
+        And.There_is_a_running_process('SimpleHTTPServer')
 
     def tearDown(self):
         Then.I_stop_the_fairground()

@@ -22,6 +22,7 @@ def create_virtualenv(path, package):
         search_dirs=None,
         never_download=False
     )
+    return os.path.join(home_dir, 'bin')
 
 def start_arbiter():
     arbiter = get_arbiter([])
@@ -37,15 +38,14 @@ def start_arbiter_process():
 
 
 def create_circus_client():
-    return CircusClient()
-
+    return CircusClient(timeout=15)
 
 def send_stop_message():
     circus_client = create_circus_client()
     circus_client.call({'command': 'quit'})
 
 def create_watcher(name, command):
-    create_virtualenv(name, name)
+    cwd = create_virtualenv(name, name)
     circus_client = create_circus_client()
     message = {
         'command': 'add',
@@ -53,6 +53,7 @@ def create_watcher(name, command):
             'cmd': command,
             'name': name,
             'args': [],
+            'working_dir': cwd,
             'options': {},
             'start': True
         }
@@ -82,13 +83,13 @@ class Fairground(object):
         finally:
             self.zookeeper_client.stop()
 
-
     def watch_node(self, watched_event):
         create_from_znode(path)
 
     def create_from_znode(self, path):
         command, data = self.zookeeper_client.get(path, self.watch_node)
-        create_watcher('sleep', command)
+        create_watcher('test_process', command)
+
 
 def main():
     fairground = Fairground()
