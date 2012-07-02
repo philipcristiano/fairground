@@ -4,6 +4,24 @@ from circus import get_arbiter
 from circus.client import CircusClient
 from multiprocessing import Process
 from fairground.connections import get_connected_zookeeper_client
+from virtualenv import create_environment
+import os.path
+
+BASE_DIR = './application_venvs'
+
+def create_virtualenv(path, package):
+    home_dir = os.path.join(BASE_DIR, path)
+
+    create_environment(
+        home_dir,
+        site_packages=False,
+        clear=False,
+        unzip_setuptools=False,
+        use_distribute=True,
+        prompt=None,
+        search_dirs=None,
+        never_download=False
+    )
 
 def start_arbiter():
     arbiter = get_arbiter([])
@@ -18,15 +36,16 @@ def start_arbiter_process():
     return p
 
 
-
 def create_circus_client():
     return CircusClient()
+
 
 def send_stop_message():
     circus_client = create_circus_client()
     circus_client.call({'command': 'quit'})
 
 def create_watcher(name, command):
+    create_virtualenv(name, name)
     circus_client = create_circus_client()
     message = {
         'command': 'add',

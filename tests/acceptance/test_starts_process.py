@@ -40,7 +40,7 @@ def I_check_the_process_status(process):
             "name": process,
         }
     }
-    for i in range(5):
+    for i in range(60):
         response = world.circus_client.call(status_message)
         if response['status'] == 'ok':
             return
