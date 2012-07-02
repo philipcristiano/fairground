@@ -5,6 +5,7 @@ nose
 pea
 psi
 sphinx
+virtualenv
 -e git://github.com/lacostej/nosyd.git#egg=nosyd
 git+https://github.com/python-zk/kazoo.git
 zc-zookeeper-static
