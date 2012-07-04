@@ -33,7 +33,6 @@ def send_stop_message():
 
 
 class Fairground(object):
-    path = '/fairground/application/sleep'
 
     def __init__(self, arbiter_manager, zookeeper_adaptor, task_queue):
         self.arbiter_manager = arbiter_manager
