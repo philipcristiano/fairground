@@ -4,6 +4,10 @@ from multiprocessing import Process, Queue
 from fairground.arbiter_manager import ArbiterManager, create_circus_client
 from fairground.zookeeper_adaptor import ZookeeperAdaptor
 
+STOP_COMMAND = 'STOP'
+CHECK_APPLICATION_COMMAND = 'CHECK_APPLICATION'
+
+
 def send_stop_message():
     circus_client = create_circus_client()
     circus_client.call({'command': 'quit'})
@@ -17,14 +21,16 @@ class Fairground(object):
         self.zookeeper_adaptor = zookeeper_adaptor
         self.task_queue = task_queue
         self._continue = True
+        self.task_queue.put((CHECK_APPLICATION_COMMAND, 'sleep'))
 
     def main(self):
         try:
-            self.create_application_from_znode(self.path)
             while self._continue:
                 task = self.task_queue.get()
-                if task[0] == 'STOP':
+                if task[0] == STOP_COMMAND:
                     self._continue = False
+                elif task[0] == CHECK_APPLICATION_COMMAND:
+                    self.create_application_from_znode(task[1])
         finally:
             self.arbiter_manager.stop()
             self.zookeeper_adaptor.stop()
@@ -50,7 +56,7 @@ def start_main_in_process():
     p = Process(target=main, args=[task_queue])
     p.start()
     def stop_function():
-        task_queue.put(('STOP', None))
+        task_queue.put((STOP_COMMAND, None))
         send_stop_message()
         p.terminate()
     return stop_function
