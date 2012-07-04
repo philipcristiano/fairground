@@ -2,7 +2,7 @@ from pea import *
 from fairground.client import create_process
 from fairground.connections import get_connected_zookeeper_client
 from fairground.arbiter_manager import create_circus_client
-from fairground.proto_watcher import start_main_in_process
+from fairground.fair import start_main_in_process
 from multiprocessing import Process
 import psi.process
 import time

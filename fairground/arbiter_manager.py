@@ -1,6 +1,27 @@
+from multiprocessing import Process
+import os.path
+
 from circus.client import CircusClient
 from circus import get_arbiter
-from multiprocessing import Process
+from virtualenv import create_environment
+
+BASE_DIR = './application_venvs'
+
+def create_virtualenv(path, package):
+    home_dir = os.path.join(BASE_DIR, path)
+
+    create_environment(
+        home_dir,
+        site_packages=False,
+        clear=False,
+        unzip_setuptools=False,
+        use_distribute=True,
+        prompt=None,
+        search_dirs=None,
+        never_download=False
+    )
+    return os.path.join(home_dir, 'bin')
+
 
 
 def create_circus_client():
