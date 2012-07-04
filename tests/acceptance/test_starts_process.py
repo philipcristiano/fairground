@@ -1,10 +1,26 @@
 from pea import *
 from fairground.client import create_process
 from fairground.connections import get_connected_zookeeper_client
-from fairground.proto_watcher import send_stop_message, create_circus_client, start_main_in_process
+from fairground.arbiter_manager import create_circus_client
+from fairground.fair import start_main_in_process
 from multiprocessing import Process
 import psi.process
 import time
+
+
+class TestRunningASingleProcess(TestCase):
+    def test_running_a_single_process(self):
+        Given.I_have_a_connection_to_zookeeper()
+        And.A_fairground_is_running()
+        And.I_have_a_circus_client()
+        command = 'python -m SimpleHTTPServer'
+        When.I_add_a_process(command)
+        Then.I_check_the_process_status('test_process')
+        And.There_is_a_running_process('SimpleHTTPServer')
+
+    def tearDown(self):
+        Then.I_stop_the_fairground()
+        Then.I_stop_the_zookeeper_connection()
 
 
 @step
@@ -21,12 +37,11 @@ def I_have_a_circus_client():
 
 @step
 def A_fairground_is_running():
-    world.fairground_process = start_main_in_process()
+    world.fairground_stop_func = start_main_in_process()
 
 @step
 def I_stop_the_fairground():
-    send_stop_message()
-    world.fairground_process.terminate()
+    world.fairground_stop_func()
 
 @step
 def I_add_a_process(process):
@@ -40,7 +55,7 @@ def I_check_the_process_status(process):
             "name": process,
         }
     }
-    for i in range(60):
+    for i in range(10):
         response = world.circus_client.call(status_message)
         if response['status'] == 'ok':
             return
@@ -54,23 +69,3 @@ def There_is_a_running_process(process):
             return
     assert False
 
-@step
-def I_have_some_delicious(item):
-        assert item in world.cart
-        world.assertEquals(world.location, 'home')
-
-# --------------------
-
-class TestRunningASingleProcess(TestCase):
-    def test_running_a_single_process(self):
-        Given.I_have_a_connection_to_zookeeper()
-        And.A_fairground_is_running()
-        And.I_have_a_circus_client()
-        command = 'python -m SimpleHTTPServer'
-        When.I_add_a_process(command)
-        Then.I_check_the_process_status('test_process')
-        And.There_is_a_running_process('SimpleHTTPServer')
-
-    def tearDown(self):
-        Then.I_stop_the_fairground()
-        Then.I_stop_the_zookeeper_connection()
