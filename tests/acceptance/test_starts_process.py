@@ -2,7 +2,7 @@ from pea import *
 from fairground.client import create_process
 from fairground.connections import get_connected_zookeeper_client
 from fairground.arbiter_manager import create_circus_client
-from fairground.proto_watcher import send_stop_message, start_main_in_process
+from fairground.proto_watcher import start_main_in_process
 from multiprocessing import Process
 import psi.process
 import time
@@ -37,12 +37,11 @@ def I_have_a_circus_client():
 
 @step
 def A_fairground_is_running():
-    world.fairground_process = start_main_in_process()
+    world.fairground_stop_func = start_main_in_process()
 
 @step
 def I_stop_the_fairground():
-    send_stop_message()
-    world.fairground_process.terminate()
+    world.fairground_stop_func()
 
 @step
 def I_add_a_process(process):

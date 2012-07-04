@@ -1,6 +1,6 @@
 import zookeeper
 import time
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from fairground.arbiter_manager import ArbiterManager, create_circus_client
 from fairground.zookeeper_adaptor import ZookeeperAdaptor
 from virtualenv import create_environment
@@ -33,11 +33,12 @@ def send_stop_message():
 class Fairground(object):
     path = '/fairground/application/sleep'
 
-    def __init__(self):
-        self.arbiter_manager = ArbiterManager()
+    def __init__(self, arbiter_manager, zookeeper_adaptor, task_queue):
+        self.arbiter_manager = arbiter_manager
+        self.zookeeper_adaptor = zookeeper_adaptor
+        self.task_queue = task_queue
 
     def main(self):
-        self.zookeeper_adaptor = ZookeeperAdaptor()
         try:
             self.create_application_from_znode(self.path)
             import time
@@ -45,7 +46,6 @@ class Fairground(object):
         finally:
             self.arbiter_manager.stop()
             self.zookeeper_adaptor.stop()
-            print self.zookeeper_adaptor._client.state
 
     def watch_node(self, watched_event):
         self.create_application_from_znode(path)
@@ -56,16 +56,22 @@ class Fairground(object):
         self.arbiter_manager.add_application('test_process', command)
 
 
-def main():
-    fairground = Fairground()
+def main(task_queue):
+    arbiter_manager = ArbiterManager()
+    zka = ZookeeperAdaptor()
+    fairground = Fairground(arbiter_manager, zka, task_queue)
     fairground.main()
 
 
 def start_main_in_process():
-
-    p = Process(target=main)
+    task_queue = Queue()
+    p = Process(target=main, args=[task_queue])
     p.start()
-    return p
+    def stop_function():
+        task_queue.put(('STOP', None))
+        send_stop_message()
+        p.terminate()
+    return stop_function
 
 if __name__ == '__main__':
     main()
