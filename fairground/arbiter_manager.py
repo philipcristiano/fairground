@@ -9,7 +9,8 @@ def create_circus_client():
 class ArbiterManager(object):
 
     def __init__(self):
-        self._arbiter_process = start_arbiter_process()
+        self._arbiter = get_arbiter([], background=True)
+        self._arbiter.start()
         self._client = create_circus_client()
 
     def add_application(self, name, command):
@@ -36,17 +37,8 @@ class ArbiterManager(object):
             self._client.call(remove_message)
             self._client.call(message)
 
-    def join(self):
-        self._arbiter_process.join()
+    def stop(self):
+        self._arbiter.stop()
 
 def start_arbiter():
-    arbiter = get_arbiter([])
-    try:
-        arbiter.start()
-    finally:
-        arbiter.stop()
-
-def start_arbiter_process():
-    p = Process(target=start_arbiter)
-    p.start()
-    return p
+    arbiter.start()

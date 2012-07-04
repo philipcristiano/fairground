@@ -40,9 +40,12 @@ class Fairground(object):
         self.zookeeper_adaptor = ZookeeperAdaptor()
         try:
             self.create_application_from_znode(self.path)
-            self.arbiter_manager.join()
+            import time
+            time.sleep(10)
         finally:
+            self.arbiter_manager.stop()
             self.zookeeper_adaptor.stop()
+            print self.zookeeper_adaptor._client.state
 
     def watch_node(self, watched_event):
         self.create_application_from_znode(path)
