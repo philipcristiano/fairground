@@ -1,13 +1,13 @@
 from fairground.connections import get_connected_zookeeper_client
 import zookeeper
 
-path = '/fairground/application/sleep'
+base_path = '/fairground/application/'
 
-def create_process(command):
+def create_process(name, command):
+    path = base_path + name
     client = get_connected_zookeeper_client()
     try:
         client.create(path, command, makepath=True)
     except zookeeper.NodeExistsException:
-        client.delete(path)
-        client.create(path, command, makepath=True)
+        client.set(path, command)
     client.stop()
