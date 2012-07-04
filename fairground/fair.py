@@ -1,11 +1,30 @@
-import zookeeper
 import time
 from multiprocessing import Process, Queue
+
 from fairground.arbiter_manager import ArbiterManager, create_circus_client
 from fairground.zookeeper_adaptor import ZookeeperAdaptor
+import zookeeper
 
 STOP_COMMAND = 'STOP'
 CHECK_APPLICATION_COMMAND = 'CHECK_APPLICATION'
+
+
+def main(task_queue):
+    arbiter_manager = ArbiterManager()
+    zka = ZookeeperAdaptor()
+    fairground = Fairground(arbiter_manager, zka, task_queue)
+    fairground.main()
+
+
+def start_main_in_process():
+    task_queue = Queue()
+    p = Process(target=main, args=[task_queue])
+    p.start()
+    def stop_function():
+        task_queue.put((STOP_COMMAND, None))
+        send_stop_message()
+        p.terminate()
+    return stop_function
 
 
 def send_stop_message():
@@ -45,23 +64,6 @@ class Fairground(object):
         command, data = self.zookeeper_adaptor.get_appliction_by_name('sleep', callback)
         self.arbiter_manager.add_application('test_process', command)
 
-
-def main(task_queue):
-    arbiter_manager = ArbiterManager()
-    zka = ZookeeperAdaptor()
-    fairground = Fairground(arbiter_manager, zka, task_queue)
-    fairground.main()
-
-
-def start_main_in_process():
-    task_queue = Queue()
-    p = Process(target=main, args=[task_queue])
-    p.start()
-    def stop_function():
-        task_queue.put((STOP_COMMAND, None))
-        send_stop_message()
-        p.terminate()
-    return stop_function
 
 if __name__ == '__main__':
     main()
