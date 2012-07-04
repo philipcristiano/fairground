@@ -3,7 +3,6 @@ from multiprocessing import Process, Queue
 
 from fairground.arbiter_manager import ArbiterManager, create_circus_client
 from fairground.zookeeper_adaptor import ZookeeperAdaptor
-import zookeeper
 
 STOP_COMMAND = 'STOP'
 CHECK_APPLICATION_COMMAND = 'CHECK_APPLICATION'
