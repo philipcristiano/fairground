@@ -17,8 +17,8 @@ class TestRunningASingleProcess(TestCase):
         When.I_add_a_process('test_process', 'python -m SimpleHTTPServer')
         And.I_add_a_process('test_sleep', 'sleep 60')
 
-        Then.I_check_the_process_status('test_process')
-        And.I_check_the_process_status('test_sleep')
+        Then.the_process_status_is_ok('test_process')
+        And.the_process_status_is_ok('test_sleep')
         And.There_is_a_running_process('SimpleHTTPServer')
         And.There_is_a_running_process('sleep 60')
 
@@ -52,7 +52,7 @@ def I_add_a_process(name, process):
     create_process(name, process)
 
 @step
-def I_check_the_process_status(process):
+def the_process_status_is_ok(process):
     status_message = {
         "command": "list",
         "properties": {
