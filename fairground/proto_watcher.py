@@ -1,9 +1,8 @@
 import zookeeper
 import time
-from circus import get_arbiter
-from circus.client import CircusClient
 from multiprocessing import Process
-from fairground.connections import get_connected_zookeeper_client
+from fairground.arbiter_manager import ArbiterManager, create_circus_client
+from fairground.zookeeper_adaptor import ZookeeperAdaptor
 from virtualenv import create_environment
 import os.path
 
@@ -24,71 +23,34 @@ def create_virtualenv(path, package):
     )
     return os.path.join(home_dir, 'bin')
 
-def start_arbiter():
-    arbiter = get_arbiter([])
-    try:
-        arbiter.start()
-    finally:
-        arbiter.stop()
 
-def start_arbiter_process():
-    p = Process(target=start_arbiter)
-    p.start()
-    return p
-
-
-def create_circus_client():
-    return CircusClient(timeout=15)
 
 def send_stop_message():
     circus_client = create_circus_client()
     circus_client.call({'command': 'quit'})
 
-def create_watcher(name, command):
-    cwd = create_virtualenv(name, name)
-    circus_client = create_circus_client()
-    message = {
-        'command': 'add',
-        'properties': {
-            'cmd': command,
-            'name': name,
-            'args': [],
-            'working_dir': cwd,
-            'options': {},
-            'start': True
-        }
-    }
-    response = circus_client.call(message)
-    if response['status'] != u'ok':
-        remove_message = {
-            'command': 'rm',
-            'properties': {
-                'name': name,
-            }
-        }
-        circus_client.call(remove_message)
-        circus_client.call(message)
 
 class Fairground(object):
     path = '/fairground/application/sleep'
 
     def __init__(self):
-        self.arbiter = start_arbiter_process()
+        self.arbiter_manager = ArbiterManager()
 
     def main(self):
-        self.zookeeper_client = get_connected_zookeeper_client()
+        self.zookeeper_adaptor = ZookeeperAdaptor()
         try:
-            self.create_from_znode(self.path)
-            self.arbiter.join()
+            self.create_application_from_znode(self.path)
+            self.arbiter_manager.join()
         finally:
-            self.zookeeper_client.stop()
+            self.zookeeper_adaptor.stop()
 
     def watch_node(self, watched_event):
-        create_from_znode(path)
+        self.create_application_from_znode(path)
 
-    def create_from_znode(self, path):
-        command, data = self.zookeeper_client.get(path, self.watch_node)
-        create_watcher('test_process', command)
+    def create_application_from_znode(self, path):
+        callback = self.zookeeper_adaptor.create_callback(self.create_application_from_znode, path)
+        command, data = self.zookeeper_adaptor.get_appliction_by_name('sleep', self.watch_node)
+        self.arbiter_manager.add_application('test_process', command)
 
 
 def main():
