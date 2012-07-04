@@ -27,13 +27,16 @@ class Fairground(object):
         try:
             while self._continue:
                 task = self.task_queue.get()
-                if task[0] == STOP_COMMAND:
-                    self._continue = False
-                elif task[0] == CHECK_APPLICATION_COMMAND:
-                    self.create_application_from_znode(task[1])
+                self._process_task(task)
         finally:
             self.arbiter_manager.stop()
             self.zookeeper_adaptor.stop()
+
+    def _process_task(self, task):
+        if task[0] == STOP_COMMAND:
+            self._continue = False
+        elif task[0] == CHECK_APPLICATION_COMMAND:
+            self.create_application_from_znode(task[1])
 
     def watch_node(self, watched_event):
         self.create_application_from_znode(path)
