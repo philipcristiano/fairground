@@ -14,9 +14,3 @@ class ZookeeperAdaptor(object):
 
     def stop(self):
         self._client.stop()
-
-    @classmethod
-    def create_callback(func, *args, **kwargs):
-        def callback(watched_event):
-            func(*args, **kwargs)
-        return callback

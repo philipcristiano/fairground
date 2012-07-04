@@ -38,12 +38,11 @@ class Fairground(object):
         elif task[0] == CHECK_APPLICATION_COMMAND:
             self.create_application_from_znode(task[1])
 
-    def watch_node(self, watched_event):
-        self.create_application_from_znode(path)
+    def create_application_from_znode(self, name):
+        def callback(watched_event):
+            self.task_queue.put((CHECK_APPLICATION_COMMAND, name))
 
-    def create_application_from_znode(self, path):
-        callback = self.zookeeper_adaptor.create_callback(self.create_application_from_znode, path)
-        command, data = self.zookeeper_adaptor.get_appliction_by_name('sleep', self.watch_node)
+        command, data = self.zookeeper_adaptor.get_appliction_by_name('sleep', callback)
         self.arbiter_manager.add_application('test_process', command)
 
 
