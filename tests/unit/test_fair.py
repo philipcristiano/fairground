@@ -13,8 +13,8 @@ class DescribeFairground(TestCase):
     queue_contents = []
 
     def setUp(self):
-        self.am = Mock(name='arbiter_manager')
-        self.zka = Mock(name='zookeeper_adaptor')
+        self.am = Mock(ArbiterManager, name='arbiter_manager')
+        self.zka = Mock(ZookeeperAdaptor, name='zookeeper_adaptor')
         self.zka.get_appliction_by_name = Mock(return_value=('COMMAND', 'DATA'))
         self.zka.get_applications = Mock(return_value=['APP1'])
         self.queue = Mock(Queue, name='queue')
