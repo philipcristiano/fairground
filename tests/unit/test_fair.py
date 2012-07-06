@@ -43,6 +43,12 @@ class DescribeFaigroundCheckingApplication(DescribeFairground):
     def should_add_application_to_arbiter(self):
         self.am.add_application.assert_called_once_with('APPLICATION', 'COMMAND')
 
+    def should_have_callback_that_adds_application_check_to_the_queue(self):
+        callback = self.zka.get_appliction_by_name.call_args[0][1]
+        callback(Mock())
+
+        self.queue.put.assert_called_with((CHECK_APPLICATION_COMMAND, 'APPLICATION'))
+
 
 class DescribeFaigroundCheckingAllApplications(DescribeFairground):
 
@@ -52,5 +58,4 @@ class DescribeFaigroundCheckingAllApplications(DescribeFairground):
         super(DescribeFaigroundCheckingAllApplications, self).setUp()
 
     def should_add_command_to_task_queue(self):
-        print self.queue.put.mock_calls
         self.queue.put.assert_called_with((CHECK_APPLICATION_COMMAND, 'APP1'))
