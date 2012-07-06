@@ -13,10 +13,14 @@ class TestRunningASingleProcess(TestCase):
         Given.I_have_a_connection_to_zookeeper()
         And.A_fairground_is_running()
         And.I_have_a_circus_client()
-        command = 'python -m SimpleHTTPServer'
-        When.I_add_a_process(command)
-        Then.I_check_the_process_status('test_process')
+
+        When.I_add_a_process('test_process', 'python -m SimpleHTTPServer')
+        And.I_add_a_process('test_sleep', 'sleep 60')
+
+        Then.the_process_status_is_ok('test_process')
+        And.the_process_status_is_ok('test_sleep')
         And.There_is_a_running_process('SimpleHTTPServer')
+        And.There_is_a_running_process('sleep 60')
 
     def tearDown(self):
         Then.I_stop_the_fairground()
@@ -44,11 +48,11 @@ def I_stop_the_fairground():
     world.fairground_stop_func()
 
 @step
-def I_add_a_process(process):
-    create_process(process)
+def I_add_a_process(name, process):
+    create_process(name, process)
 
 @step
-def I_check_the_process_status(process):
+def the_process_status_is_ok(process):
     status_message = {
         "command": "list",
         "properties": {

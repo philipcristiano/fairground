@@ -26,6 +26,10 @@ integration-test:
 acceptance-test:
 	$(NOSE) tests/acceptance -v
 
+.PHONY: unit-test-coverage
+unit-test-coverage:
+	$(NOSE) --with-coverage --cover-package=fairground --cover-tests --cover-erase
+
 .PHONY: tdd
 tdd:
 	$(DEV_ENV) $(NOSYD) tests/unit
