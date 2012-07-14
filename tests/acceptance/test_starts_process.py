@@ -33,10 +33,6 @@ def I_have_a_circus_process_running_with_the_fairground_plugin():
 def I_stop_the_circus_daemon():
     world.am.stop()
 
-@step
-def I_start_the_fairground_plugin():
-    pass
-
 
 @step
 def I_have_a_connection_to_zookeeper():
