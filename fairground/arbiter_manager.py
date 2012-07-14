@@ -29,8 +29,8 @@ def create_circus_client():
 
 class ArbiterManager(object):
 
-    def __init__(self):
-        self._arbiter = get_arbiter([], background=True)
+    def __init__(self, *args, **kwargs):
+        self._arbiter = get_arbiter([], *args, background=True, **kwargs)
         self._arbiter.start()
         self._client = create_circus_client()
 

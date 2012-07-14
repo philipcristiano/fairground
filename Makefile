@@ -24,7 +24,7 @@ integration-test:
 
 .PHONY: acceptance-test
 acceptance-test:
-	$(NOSE) tests/acceptance -v
+	$(DEV_ENV) $(NOSE) tests/acceptance -v
 
 .PHONY: unit-test-coverage
 unit-test-coverage:
