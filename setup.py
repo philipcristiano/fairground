@@ -8,7 +8,7 @@ def read(fname):
 
 def run_setup():
     setup(
-        name='',
+        name='fairground',
         version='0.0.1',
         description='',
         keywords = '',
@@ -16,7 +16,6 @@ def run_setup():
         author='',
         author_email='@',
         license='',
-        packages=[''],
         install_requires=[
         ],
         test_suite='tests',
