@@ -12,10 +12,10 @@ import time
 class TestRunningASingleProcess(TestCase):
     def test_running_a_single_process(self):
         Given.I_have_a_circus_process_running_with_the_fairground_plugin()
-        # And.I_add_a_process('test_sleep', 'sleep 60')
-        # Then.the_process_status_is_ok('test_sleep')
+        And.I_add_a_process('test_sleep', 'sleep 60')
+        Then.the_process_status_is_ok('test_sleep')
         # And.There_is_a_running_process('SimpleHTTPServer')
-        # And.There_is_a_running_process('sleep 60')
+        And.There_is_a_running_process('sleep 60')
 
     def tearDown(self):
         Then.I_stop_the_circus_daemon()
@@ -66,7 +66,7 @@ def the_process_status_is_ok(process):
             "name": process,
         }
     }
-    for i in range(10):
+    for i in range(3):
         response = world.circus_client.call(status_message)
         if response['status'] == 'ok':
             return
