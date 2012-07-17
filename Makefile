@@ -14,6 +14,9 @@ PYTHON = $(ENV) $(VIRTUALENV_BIN)/python
 .PHONY: test
 test: unit-test integration-test acceptance-test
 
+start_plugin:
+	/Users/philipcristiano/gits/fairground/venv/bin/python -c 'from circus import plugins;plugins.main()' --endpoint tcp://127.0.0.1:5555 --pubsub tcp://127.0.0.1:5556 fairground.plugin.FairgroundPlugin
+
 .PHONY: unit-test
 unit-test:
 	$(NOSE) tests/unit
