@@ -10,7 +10,7 @@ class ZookeeperAdaptor(object):
 
     def get_appliction_by_name(self, application_name, callback):
         path = self.path + '/' + application_name
-        return self._client.get(path)
+        return self._client.get(path, callback)
 
     def get_application_names(self):
         return self._client.get_children(self.path)

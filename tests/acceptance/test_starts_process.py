@@ -14,8 +14,10 @@ class TestRunningASingleProcess(TestCase):
         Given.I_have_a_circus_process_running_with_the_fairground_plugin()
         And.I_add_a_process('test_sleep', 'sleep 60')
         Then.the_process_status_is_ok('test_sleep')
-        # And.There_is_a_running_process('SimpleHTTPServer')
         And.There_is_a_running_process('sleep 60')
+
+        Then.I_add_a_process('test_sleep', 'sleep 30')
+        And.There_is_a_running_process('sleep 30')
 
     def tearDown(self):
         Then.I_stop_the_circus_daemon()
@@ -75,8 +77,10 @@ def the_process_status_is_ok(process):
 
 @step
 def There_is_a_running_process(process):
-    for p in psi.process.ProcessTable().values():
-        if process in p.command:
-            return
+    for i in range(3):
+        for p in psi.process.ProcessTable().values():
+            if process in p.command:
+                return
+        time.sleep(1)
     assert False
 
