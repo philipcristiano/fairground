@@ -15,7 +15,7 @@ def create_process(name, command):
     })
 
     try:
-        client.create(path, command, makepath=True)
+        client.create(path, data, makepath=True)
     except zookeeper.NodeExistsException:
         client.set(path, data)
     client.stop()

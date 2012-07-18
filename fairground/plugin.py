@@ -1,20 +1,25 @@
 from Queue import Queue
 import logging
 import json
+import socket
 
 from circus.plugins import CircusPlugin
 
-from fairground.zookeeper_adaptor import ZookeeperAdaptor
+from fairground.zookeeper_adaptor import ZookeeperAdaptor, ProcessDoesNotExist
 
 
 class FairgroundPlugin(CircusPlugin):
 
     def __init__(self, *args, **kwargs):
         super(FairgroundPlugin, self).__init__(*args, **kwargs)
+        print args, kwargs
+        name = socket.getfqdn()
+        print name
         self.logger = logging.getLogger('Fairground')
         self.logger.info('Fairground initializing')
         self.zka = ZookeeperAdaptor()
         self.notification_queue = Queue()
+        self.zka.register_node(name)
         self.logger.info('Fairground initialized')
 
     def initialize(self, *args, **kwargs):
@@ -30,7 +35,12 @@ class FairgroundPlugin(CircusPlugin):
     def _create_application_by_name(self, application_name):
         def application_callback(watched_event):
             self.notification_queue.put(('APP', application_name))
-        (data, metadata) = self.zka.get_appliction_by_name(application_name, application_callback)
+        try:
+            (data, metadata) = self.zka.get_application_by_name(application_name, application_callback)
+        except ProcessDoesNotExist:
+            self.remove_application_by_name(application_name)
+            return
+        print 'data', data
         application = json.loads(data)
         self.add_application(application)
 
@@ -71,3 +81,7 @@ class FairgroundPlugin(CircusPlugin):
             }
             self.call('rm', name=application['name'])
             response = self.call('add', **properties)
+
+    def remove_application_by_name(self, name):
+        self.call('rm', name=name)
+
